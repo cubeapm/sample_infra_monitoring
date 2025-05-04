@@ -1,0 +1,247 @@
+# Individual infra agents are configured in the receivers section below.
+# The list of available agents and their documentation is available at
+# https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver
+receivers:
+  apache:
+    endpoint: "http://apache:80/server-status?auto"
+    collection_interval: 60s
+  
+  elasticsearch:
+    endpoint: http://elasticsearch:9200
+    username: elastic
+    password: elastic
+    collection_interval: 60s
+
+  haproxy:
+    endpoint: http://haproxy:8404/stats
+    collection_interval: 60s
+    metrics:
+      haproxy.connections.total:
+        enabled: true
+      haproxy.failed_checks:
+        enabled: true
+
+  # hostmetrics monitors host machines (bare metal, ec2, etc.)
+  # It collects metrics for CPU, memory, etc. on the host
+  # where the collector is running.
+  hostmetrics:
+    collection_interval: 60s
+    scrapers:
+      cpu:          
+      disk:
+        exclude:
+          devices:
+            - ^loop.*$
+          match_type: regexp
+        metrics:
+          system.disk.io:
+            enabled: false
+          system.disk.merged:
+            enabled: false
+          system.disk.operation_time:
+            enabled: false
+          system.disk.operations:
+            enabled: false
+          system.disk.pending_operations:
+            enabled: false
+          system.disk.weighted_io_time:
+            enabled: false
+          
+      # load:
+      filesystem:
+        exclude_devices:
+          devices:
+            - ^/dev/loop.*$
+          match_type: regexp
+        metrics:
+          system.filesystem.inodes.usage:
+            enabled: false
+      memory:
+      network:
+        metrics:
+          system.network.connections:
+            enabled: false
+          system.network.dropped:
+            enabled: false
+          system.network.errors:
+            enabled: false
+          system.network.packets:
+            enabled: false
+      # # paging:
+      # # processes:
+      # process:
+      #   exclude:
+      #     names:
+      #       - ^(irq|ksoftirqd|kworker|idle_inject|cpuhp|migration)/.*$
+      #       - ^(systemd|rcu_|nvme-).*$
+      #     match_type: regexp
+      #   metrics:
+      #     process.disk.io:
+      #       enabled: false
+      #     process.memory.virtual:
+      #       enabled: false
+      #   mute_process_name_error: true
+      #   mute_process_cgroup_error: true
+      #   mute_process_exe_error: true
+      #   mute_process_io_error: true
+      #   mute_process_user_error: true
+
+  kafkametrics:
+    protocol_version: "3.0.0"
+    cluster_alias: my-kafka-cluster
+    scrapers:
+      - brokers
+      - topics
+      - consumers
+    brokers: kafka:9092
+    collection_interval: 60s
+    topic_match: ^[^_].*$ # exclude internal topics (starting with _)
+    resource_attributes:
+      kafka.cluster.alias:
+        enabled: true
+    metadata:
+      # default is 10m, which is too long a delay for getting
+      # metadata (topics, partitions, etc.) updates.
+      refresh_interval: 2m
+
+  memcached:
+    endpoint: memcached:11211
+    transport: tcp
+    collection_interval: 60s
+
+  mongodb:
+    hosts:
+      - endpoint: mongo:27017
+    # username: cubeapm
+    # password: mypassword
+    collection_interval: 60s
+    tls:
+      insecure: true
+      # ca_file: /etc/otelcol-contrib/global-bundle.pem
+
+  mysql:
+    endpoint: mysql:3306
+    username: root
+    password: root
+    collection_interval: 60s
+    metrics:
+      mysql.commands:
+        enabled: true
+      mysql.connection.count:
+        enabled: true
+      mysql.connection.errors:
+        enabled: true
+      mysql.query.count:
+        enabled: true
+      mysql.query.slow.count:
+        enabled: true
+      mysql.joins:
+        enabled: true
+      mysql.replica.sql_delay:
+        enabled: true
+      mysql.replica.time_behind_source:
+        enabled: true
+      mysql.index.io.wait.time:
+        enabled: false
+      mysql.index.io.wait.count:
+        enabled: false
+      mysql.table.io.wait.time:
+        enabled: false
+      mysql.table.io.wait.count:
+        enabled: false
+
+  nginx:
+    endpoint: http://nginx:80/status
+    collection_interval: 60s
+
+  postgresql:
+    endpoint: postgres:5432
+    transport: tcp
+    username: cubeapm
+    password: mypassword
+    # databases:
+    #   - otel
+    # exclude_databases:
+    #   - rdsadmin
+    collection_interval: 60s
+    tls:
+      insecure: true
+
+  rabbitmq:
+    endpoint: http://rabbitmq:15672
+    username: YOUR_USERNAME
+    password: YOUR_PASSWORD
+    collection_interval: 60s
+
+  redis:
+    endpoint: redis:6379
+    collection_interval: 60s
+    resource_attributes:
+      server.address:
+        enabled: true
+    metrics:
+      redis.cmd.calls:
+        enabled: true
+
+processors:
+  batch:
+
+  resourcedetection:
+    detectors:
+      - system
+    system:
+      hostname_sources: ["os"]
+
+  # resource/cube.environment:
+  #   attributes:
+  #     - key: cube.environment
+  #       value: UNSET
+  #       action: upsert
+
+exporters:
+  debug:
+    verbosity: detailed
+    sampling_initial: 5
+    sampling_thereafter: 1
+
+  otlphttp:
+    metrics_endpoint: http://host.docker.internal:3130/api/metrics/v1/save/otlp
+    retry_on_failure:
+      enabled: false
+
+service:
+  pipelines:
+    metrics:
+      receivers:
+        # Individual infra monitoring agents can be disabled
+        # by commenting them out here.
+        - apache
+        - elasticsearch
+        - haproxy
+        - hostmetrics
+        - kafkametrics
+        - memcached
+        - mongodb
+        - mysql
+        - nginx
+        - postgresql
+        - rabbitmq
+        - redis
+      processors:
+        - batch
+        - resourcedetection
+        # - resource/cube.environment
+      exporters:
+        - otlphttp
+        # - debug
+
+  telemetry:
+    logs:
+      level: info
+    metrics:
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: "localhost"
+                port: 8888
