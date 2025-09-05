@@ -2,16 +2,19 @@
 # The list of available agents and their documentation is available at
 # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver
 receivers:
+  # Reference doc: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/apachereceiver#readme
   apache:
     endpoint: "http://apache:80/server-status?auto"
     collection_interval: 60s
   
+  # Reference doc: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/elasticsearchreceiver#readme
   elasticsearch:
     endpoint: http://elasticsearch:9200
     username: elastic
     password: elastic
     collection_interval: 60s
 
+  # Reference doc: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/haproxyreceiver#readme
   haproxy:
     endpoint: http://haproxy:8404/stats
     collection_interval: 60s
@@ -21,6 +24,7 @@ receivers:
       haproxy.failed_checks:
         enabled: true
 
+  # Reference doc: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/hostmetricsreceiver#readme
   # hostmetrics monitors host machines (bare metal, ec2, etc.)
   # It collects metrics for CPU, memory, etc. on the host
   # where the collector is running.
@@ -86,6 +90,7 @@ receivers:
       #   mute_process_io_error: true
       #   mute_process_user_error: true
 
+  # Reference doc: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/kafkametricsreceiver#readme
   kafkametrics:
     protocol_version: "3.0.0"
     cluster_alias: my-kafka-cluster
@@ -104,11 +109,13 @@ receivers:
       # metadata (topics, partitions, etc.) updates.
       refresh_interval: 2m
 
+  # Reference doc: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/memcachedreceiver#readme
   memcached:
     endpoint: memcached:11211
     transport: tcp
     collection_interval: 60s
 
+  # Reference doc: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/mongodbreceiver#readme
   mongodb:
     hosts:
       - endpoint: mongo:27017
@@ -119,6 +126,7 @@ receivers:
       insecure: true
       # ca_file: /etc/otelcol-contrib/global-bundle.pem
 
+  # Reference doc: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/mysqlreceiver#readme
   mysql:
     endpoint: mysql:3306
     username: root
@@ -150,10 +158,12 @@ receivers:
       mysql.table.io.wait.count:
         enabled: false
 
+  # Reference doc: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/nginxreceiver#readme
   nginx:
     endpoint: http://nginx:80/status
     collection_interval: 60s
 
+  # Reference doc: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/postgresqlreceiver#readme
   postgresql:
     endpoint: postgres:5432
     transport: tcp
@@ -167,12 +177,14 @@ receivers:
     tls:
       insecure: true
 
+  # Reference doc: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/rabbitmqreceiver#readme
   rabbitmq:
     endpoint: http://rabbitmq:15672
     username: YOUR_USERNAME
     password: YOUR_PASSWORD
     collection_interval: 60s
 
+  # Reference doc: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/redisreceiver#readme
   redis:
     endpoint: redis:6379
     collection_interval: 60s
