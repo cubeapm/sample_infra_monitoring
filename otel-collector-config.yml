@@ -209,6 +209,13 @@ processors:
   #     - key: cube.environment
   #       value: UNSET
   #       action: upsert
+  # transform/attributes.rename:
+  #   error_mode: ignore
+  #   metric_statements:
+  #     - context: resource
+  #       statements:
+  #         - set(attributes["mysql.instance.endpoint"], "primary-mysql") where attributes["mysql.instance.endpoint"] == "mysql:3306"
+  #         - set(attributes["mysql.instance.endpoint"], "readonly-mysql") where attributes["mysql.instance.endpoint"] == "mysql-ro:3306"
 
 exporters:
   debug:
@@ -243,6 +250,7 @@ service:
         - batch
         - resourcedetection
         # - resource/cube.environment
+        # - transform/attributes.rename
       exporters:
         - otlphttp
         # - debug
