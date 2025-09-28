@@ -3,10 +3,9 @@
 # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver
 receivers:
 
-  # Reference doc: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/apachereceiver#readme
+  # Reference doc: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/aerospikereceiver#readme
   aerospike:
     endpoint: "aerospike:3000"
-    tlsname: ""
     collect_cluster_metrics: true
     collection_interval: 60s
 
