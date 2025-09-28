@@ -1,5 +1,31 @@
 version: "3"
 services:
+
+  aerospike:
+    image: aerospike/aerospike-server:8.1
+    container_name: aerospike
+    platform: linux/amd64
+    ports:
+      - "3000:3000"  # client
+      - "3001:3001"  # fabric
+      - "3002:3002"  # mesh
+      - "3003:3003"  # info
+      # - "9145:9145"
+    volumes:
+      - ./aerospike.conf:/etc/aerospike/aerospike.conf
+
+  aerospike-exporter:
+    image: aerospike/aerospike-prometheus-exporter:latest
+    container_name: aerospike-exporter
+    ports:
+      - "9145:9145" # Prometheus metrics endpoint
+    command: [ "--config", "/etc/aerospike-prometheus-exporter/config.yml" ]
+    volumes:
+      # - ./exporter-config.yml:/etc/aerospike-prometheus-exporter/config.yml
+      - ./exporter-config.yml:/etc/aerospike-prometheus-exporter/config.yml
+    depends_on:
+      - aerospike
+      
   apache:
     image: httpd:2.4-alpine
     volumes:
