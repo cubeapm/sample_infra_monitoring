@@ -2,6 +2,13 @@
 # The list of available agents and their documentation is available at
 # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver
 receivers:
+
+  # Reference doc: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/aerospikereceiver#readme
+  aerospike:
+    endpoint: "aerospike:3000"
+    collect_cluster_metrics: true
+    collection_interval: 60s
+
   # Reference doc: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/apachereceiver#readme
   apache:
     endpoint: "http://apache:80/server-status?auto"
@@ -234,6 +241,7 @@ service:
       receivers:
         # Individual infra monitoring agents can be disabled
         # by commenting them out here.
+        - aerospike
         - apache
         - elasticsearch
         - haproxy

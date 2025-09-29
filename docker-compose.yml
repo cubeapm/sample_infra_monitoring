@@ -1,5 +1,14 @@
 version: "3"
 services:
+
+  aerospike:
+    image: aerospike:ce-8.1.0.1
+    ports:
+      - "3000:3000"  # client
+      - "3001:3001"  # fabric
+      - "3002:3002"  # mesh
+      - "3003:3003"  # info
+      
   apache:
     image: httpd:2.4-alpine
     volumes:
