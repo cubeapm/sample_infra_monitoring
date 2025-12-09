@@ -1,0 +1,10 @@
+receivers:
+  redis:
+    endpoint: redis:6379
+    collection_interval: 60s
+    resource_attributes:
+      server.address:
+        enabled: true
+    metrics:
+      redis.cmd.calls:
+        enabled: true
