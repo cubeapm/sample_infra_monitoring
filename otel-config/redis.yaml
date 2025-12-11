@@ -26,4 +26,4 @@ service:
         - batch
         - resource/prod.redis
       exporters:
-        - otlphttp
+        - forward/aggregator

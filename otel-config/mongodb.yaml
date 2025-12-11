@@ -23,4 +23,4 @@ service:
         - batch
         - resource/prod.mongo
       exporters:
-        - otlphttp
+        - forward/aggregator

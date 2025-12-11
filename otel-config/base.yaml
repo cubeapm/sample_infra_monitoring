@@ -101,6 +101,9 @@ exporters:
     retry_on_failure:
       enabled: false
 
+connectors:
+  forward/aggregator:
+
 service:
   pipelines:
     metrics:
@@ -116,7 +119,8 @@ service:
         - nginx
         # - postgresql
         # - rabbitmq
-        # MongoDB and Redis pipelines are defined in their respective files
+        # Receive from connector (which aggregates mongodb and redis pipelines)
+        - forward/aggregator
       processors:
         - batch
         # - resourcedetection
