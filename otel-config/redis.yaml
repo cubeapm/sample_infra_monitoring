@@ -8,3 +8,11 @@ receivers:
     metrics:
       redis.cmd.calls:
         enabled: true
+
+processors:
+  batch:
+  resource/prod.redis:
+    attributes:
+      - key: server.address
+        value: PROD-REDIS
+        action: upsert

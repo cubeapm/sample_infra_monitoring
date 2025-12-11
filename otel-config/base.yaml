@@ -90,10 +90,10 @@ receivers:
 
 processors:
   batch:
-  resourcedetection:
-    detectors: [system]
-    system:
-      hostname_sources: ["os"]
+  # resourcedetection:
+  #   detectors: [system]
+  #   system:
+  #     hostname_sources: ["os"]
 
 exporters:
   otlphttp:
@@ -113,13 +113,55 @@ service:
         # - kafkametrics
         # - memcached
         - mysql
-        - mongodb
+        # - mongodb
         - nginx
+        # - postgresql
+        # - rabbitmq
+        # - redis
+      processors:
+        - batch
+        # - resourcedetection
+      exporters:
+        - otlphttp
+    metrics/redis:
+      receivers:
+        # - aerospike
+        # - apache
+        # - elasticsearch
+        # - haproxy
+        # - hostmetrics
+        # - kafkametrics
+        # - memcached
+        # - mysql
+        # - mongodb
+        # - nginx
         # - postgresql
         # - rabbitmq
         - redis
       processors:
         - batch
-        - resourcedetection
+        - resource/prod.redis
+        # - resourcedetection
+      exporters:
+        - otlphttp
+    metrics/mongo:
+      receivers:
+        # - aerospike
+        # - apache
+        # - elasticsearch
+        # - haproxy
+        # - hostmetrics
+        # - kafkametrics
+        # - memcached
+        # - mysql
+        - mongodb
+        # - nginx
+        # # - postgresql
+        # # - rabbitmq
+        # - redis
+      processors:
+        - batch
+        - resource/prod.mongo
+        # - resourcedetection
       exporters:
         - otlphttp

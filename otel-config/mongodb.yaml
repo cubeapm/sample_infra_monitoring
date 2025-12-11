@@ -5,3 +5,20 @@ receivers:
     collection_interval: 60s
     tls:
       insecure: true
+
+processors:
+  batch:
+  resource/prod.mongo:
+    attributes:
+      - key: host.name
+        value: PROD-MONGO
+        action: upsert
+
+  # Example: MongoDB-specific processor
+  # You can add processors here that will be merged with base.yaml
+  # For example, a transform processor to add MongoDB-specific attributes
+  # transform/mongodb:
+  #   metric_statements:
+  #     - context: resource
+  #       statements:
+  #         - set(attributes["service.name"], "mongodb") where name() == "mongodb"
