@@ -113,55 +113,12 @@ service:
         # - kafkametrics
         # - memcached
         - mysql
-        # - mongodb
         - nginx
         # - postgresql
         # - rabbitmq
-        # - redis
+        # MongoDB and Redis pipelines are defined in their respective files
       processors:
         - batch
-        # - resourcedetection
-      exporters:
-        - otlphttp
-    metrics/redis:
-      receivers:
-        # - aerospike
-        # - apache
-        # - elasticsearch
-        # - haproxy
-        # - hostmetrics
-        # - kafkametrics
-        # - memcached
-        # - mysql
-        # - mongodb
-        # - nginx
-        # - postgresql
-        # - rabbitmq
-        - redis
-      processors:
-        - batch
-        - resource/prod.redis
-        # - resourcedetection
-      exporters:
-        - otlphttp
-    metrics/mongo:
-      receivers:
-        # - aerospike
-        # - apache
-        # - elasticsearch
-        # - haproxy
-        # - hostmetrics
-        # - kafkametrics
-        # - memcached
-        # - mysql
-        - mongodb
-        # - nginx
-        # # - postgresql
-        # # - rabbitmq
-        # - redis
-      processors:
-        - batch
-        - resource/prod.mongo
         # - resourcedetection
       exporters:
         - otlphttp

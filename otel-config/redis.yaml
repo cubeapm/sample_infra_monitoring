@@ -14,5 +14,16 @@ processors:
   resource/prod.redis:
     attributes:
       - key: server.address
-        value: PROD-REDIS
+        value: PROD-REDIS1
         action: upsert
+
+service:
+  pipelines:
+    metrics/redis:
+      receivers:
+        - redis
+      processors:
+        - batch
+        - resource/prod.redis
+      exporters:
+        - otlphttp

@@ -11,14 +11,16 @@ processors:
   resource/prod.mongo:
     attributes:
       - key: host.name
-        value: PROD-MONGO
+        value: PROD-MONGO1
         action: upsert
 
-  # Example: MongoDB-specific processor
-  # You can add processors here that will be merged with base.yaml
-  # For example, a transform processor to add MongoDB-specific attributes
-  # transform/mongodb:
-  #   metric_statements:
-  #     - context: resource
-  #       statements:
-  #         - set(attributes["service.name"], "mongodb") where name() == "mongodb"
+service:
+  pipelines:
+    metrics/mongo:
+      receivers:
+        - mongodb
+      processors:
+        - batch
+        - resource/prod.mongo
+      exporters:
+        - otlphttp
