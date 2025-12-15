@@ -90,10 +90,10 @@ receivers:
 
 processors:
   batch:
-  # resourcedetection:
-  #   detectors: [system]
-  #   system:
-  #     hostname_sources: ["os"]
+  resourcedetection:
+    detectors: [system]
+    system:
+      hostname_sources: ["os"]
 
 exporters:
   otlphttp:
