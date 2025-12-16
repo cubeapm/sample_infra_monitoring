@@ -1,92 +1,92 @@
 receivers:
-  aerospike:
-    endpoint: "aerospike:3000"
-    collect_cluster_metrics: true
-    collection_interval: 60s
+  # aerospike:
+  #   endpoint: "aerospike:3000"
+  #   collect_cluster_metrics: true
+  #   collection_interval: 60s
 
-  apache:
-    endpoint: "http://apache:80/server-status?auto"
-    collection_interval: 60s
+  # apache:
+  #   endpoint: "http://apache:80/server-status?auto"
+  #   collection_interval: 60s
 
-  elasticsearch:
-    endpoint: http://elasticsearch:9200
-    username: elastic
-    password: elastic
-    collection_interval: 60s
+  # elasticsearch:
+  #   endpoint: http://elasticsearch:9200
+  #   username: elastic
+  #   password: elastic
+  #   collection_interval: 60s
 
-  haproxy:
-    endpoint: http://haproxy:8404/stats
-    collection_interval: 60s
-    metrics:
-      haproxy.connections.total:
-        enabled: true
-      haproxy.failed_checks:
-        enabled: true
+  # haproxy:
+  #   endpoint: http://haproxy:8404/stats
+  #   collection_interval: 60s
+  #   metrics:
+  #     haproxy.connections.total:
+  #       enabled: true
+  #     haproxy.failed_checks:
+  #       enabled: true
 
-  hostmetrics:
-    collection_interval: 60s
-    scrapers:
-      cpu:
-      disk:
-        exclude:
-          devices:
-            - ^loop.*$
-          match_type: regexp
-        metrics:
-          system.disk.io:
-            enabled: false
-      filesystem:
-        exclude_devices:
-          devices:
-            - ^/dev/loop.*$
-          match_type: regexp
-      memory:
-      network:
-        metrics:
-          system.network.connections:
-            enabled: false
+  # hostmetrics:
+  #   collection_interval: 60s
+  #   scrapers:
+  #     cpu:
+  #     disk:
+  #       exclude:
+  #         devices:
+  #           - ^loop.*$
+  #         match_type: regexp
+  #       metrics:
+  #         system.disk.io:
+  #           enabled: false
+  #     filesystem:
+  #       exclude_devices:
+  #         devices:
+  #           - ^/dev/loop.*$
+  #         match_type: regexp
+  #     memory:
+  #     network:
+  #       metrics:
+  #         system.network.connections:
+  #           enabled: false
 
-  kafkametrics:
-    protocol_version: "3.0.0"
-    cluster_alias: my-kafka-cluster
-    scrapers: [brokers, topics, consumers]
-    brokers: kafka:9092
-    collection_interval: 60s
-    topic_match: ^[^_].*$
-    resource_attributes:
-      kafka.cluster.alias:
-        enabled: true
-    metadata:
-      refresh_interval: 2m
+  # kafkametrics:
+  #   protocol_version: "3.0.0"
+  #   cluster_alias: my-kafka-cluster
+  #   scrapers: [brokers, topics, consumers]
+  #   brokers: kafka:9092
+  #   collection_interval: 60s
+  #   topic_match: ^[^_].*$
+  #   resource_attributes:
+  #     kafka.cluster.alias:
+  #       enabled: true
+  #   metadata:
+  #     refresh_interval: 2m
 
-  memcached:
-    endpoint: memcached:11211
-    transport: tcp
-    collection_interval: 60s
+  # memcached:
+  #   endpoint: memcached:11211
+  #   transport: tcp
+  #   collection_interval: 60s
 
-  mysql:
-    endpoint: mysql:3306
-    username: root
-    password: root
-    collection_interval: 60s
+  # mysql:
+  #   endpoint: mysql:3306
+  #   username: root
+  #   password: root
+  #   collection_interval: 60s
 
-  nginx:
-    endpoint: http://nginx:80/status
-    collection_interval: 60s
+  # nginx:
+  #   endpoint: http://nginx:80/status
+  #   collection_interval: 60s
 
-  postgresql:
-    endpoint: postgres:5432
-    username: cubeapm
-    password: mypassword
-    collection_interval: 60s
-    tls:
-      insecure: true
+  # postgresql:
+  #   endpoint: postgres:5432
+  #   username: cubeapm
+  #   password: mypassword
+  #   collection_interval: 60s
+  #   tls:
+  #     insecure: true
 
-  rabbitmq:
-    endpoint: http://rabbitmq:15672
-    username: YOUR_USERNAME
-    password: YOUR_PASSWORD
-    collection_interval: 60s
+  # rabbitmq:
+  #   endpoint: http://rabbitmq:15672
+  #   username: YOUR_USERNAME
+  #   password: YOUR_PASSWORD
+  #   collection_interval: 60s
 
 processors:
   batch:
@@ -115,8 +115,8 @@ service:
         # - hostmetrics
         # - kafkametrics
         # - memcached
-        - mysql
-        - nginx
+        # - mysql
+        # - nginx
         # - postgresql
         # - rabbitmq
         # Receive from connector (which aggregates mongodb and redis pipelines)

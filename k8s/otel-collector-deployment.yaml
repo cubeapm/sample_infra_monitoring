@@ -1,0 +1,79 @@
+mode: deployment
+
+image:
+  repository: otel/opentelemetry-collector-contrib
+  tag: 0.123.0
+
+presets:
+  kubernetesAttributes:
+    enabled: true
+  kubernetesEvents:
+    enabled: true
+  clusterMetrics:
+    enabled: true
+
+extraVolumes:
+  - name: otel-infra-base
+    configMap:
+      name: otel-collector-base-config
+
+  - name: otel-infra-mongodb
+    configMap:
+      name: otel-collector-mongodb-config
+
+  - name: otel-infra-redis
+    configMap:
+      name: otel-collector-redis-config
+
+  - name: merged-config
+    emptyDir: {}
+
+extraVolumeMounts:
+  - name: otel-infra-base
+    mountPath: /conf/infra/base
+    readOnly: true
+
+  - name: otel-infra-mongodb
+    mountPath: /conf/infra/mongodb
+    readOnly: true
+
+  - name: otel-infra-redis
+    mountPath: /conf/infra/redis
+    readOnly: true
+
+  - name: merged-config
+    mountPath: /conf/merged
+
+initContainers:
+  - name: merge-configs
+    image: mikefarah/yq:4.40.5
+    command:
+      - /bin/sh
+      - -c
+      - |
+        # Merge all YAML configs - yq will merge receivers, processors, exporters, connectors
+        # and combine service.pipelines from all files
+        yq eval-all '. as $item ireduce ({}; . *+ $item)' \
+          /conf/infra/base/base.yaml \
+          /conf/infra/mongodb/mongodb.yaml \
+          /conf/infra/redis/redis.yaml > /conf/merged/config.yaml
+        
+        echo "Config merged successfully. Merged config:"
+        cat /conf/merged/config.yaml
+    volumeMounts:
+      - name: otel-infra-base
+        mountPath: /conf/infra/base
+        readOnly: true
+      - name: otel-infra-mongodb
+        mountPath: /conf/infra/mongodb
+        readOnly: true
+      - name: otel-infra-redis
+        mountPath: /conf/infra/redis
+        readOnly: true
+      - name: merged-config
+        mountPath: /conf/merged
+
+command:
+  name: otelcol-contrib
+  extraArgs:
+    - "--config=/conf/merged/config.yaml"

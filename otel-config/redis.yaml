@@ -1,6 +1,6 @@
 receivers:
   redis:
-    endpoint: redis:6379
+    endpoint: http://host.docker.internal:6379
     collection_interval: 60s
     resource_attributes:
       server.address:
