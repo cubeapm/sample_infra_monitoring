@@ -59,6 +59,7 @@ receivers:
             enabled: false
           
       load:
+        cpu_average: false
       filesystem:
         exclude_devices:
           devices:
