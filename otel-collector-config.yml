@@ -58,7 +58,7 @@ receivers:
           system.disk.weighted_io_time:
             enabled: false
           
-      # load:
+      load:
       filesystem:
         exclude_devices:
           devices:
