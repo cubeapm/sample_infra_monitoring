@@ -133,6 +133,32 @@ receivers:
       insecure: true
       # ca_file: /etc/otelcol-contrib/global-bundle.pem
 
+  # Reference doc: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/mongodbatlasreceiver
+  mongodbatlas:
+    # It is highly recommended to use environment variables for keys
+    public_key: "${env:MONGODB_ATLAS_PUBLIC_KEY}"
+    private_key: "${env:MONGODB_ATLAS_PRIVATE_KEY}"
+
+    # Granularity of the metrics (ISO 8601 duration).
+    # 'PT1M' is 1 minute.
+    granularity: "PT1M"
+
+    # Optional: List of Project IDs to scrape.
+    # If omitted, it attempts to scrape all projects accessible by the API key.
+    # projects:
+    #   - "your-project-id-1"
+
+    # RESOURCE ATTRIBUTES CONFIGURATION
+    # Based on your provided config, some attributes (like cluster.name)
+    # were 'enabled: false'. This section forces them to be enabled.
+    resource_attributes:
+      mongodb_atlas.cluster.name:
+        enabled: true
+      mongodb_atlas.project.name:
+        enabled: true
+      mongodb_atlas.user.alias:
+        enabled: true
+
   # Reference doc: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/mysqlreceiver#readme
   mysql:
     endpoint: mysql:3306
@@ -251,6 +277,7 @@ service:
         - kafkametrics
         - memcached
         - mongodb
+        - mongodbatlas
         - mysql
         - nginx
         - postgresql
