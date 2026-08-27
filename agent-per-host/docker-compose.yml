@@ -1,0 +1,185 @@
+# Simulates 6 separate hosts, each running nginx + redis + its own collector.
+# hostN-net owns a network namespace that the other three containers join, so
+# the agent really does reach its services over localhost -- same as a VM.
+# All agents mount the SAME agent-config.yml.
+#
+# Hosts 1-4 start by default. Hosts 5-6 are spares behind Compose profiles,
+# used to demo adding/removing a server without touching agent-config.yml:
+#   docker compose --profile host5 up -d
+#   docker compose rm -sf host5-net nginx-5 redis-5 agent-5
+
+x-agent: &agent
+  image: otel/opentelemetry-collector-contrib:0.123.0
+  volumes:
+    - ./agent-config.yml:/etc/otelcol-contrib/config.yaml:ro
+  restart: unless-stopped
+
+x-nginx: &nginx
+  image: nginx:1.24.0
+  volumes:
+    - ../nginx.conf:/etc/nginx/nginx.conf:ro
+
+x-redis: &redis
+  image: redis:alpine3.18
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      # directory mount, not a single file: survives editors that replace inodes
+      - ./sd:/etc/prometheus/sd:ro
+    ports:
+      - "9090:9090"
+
+  # ---------- host 1 ----------
+  host1-net:
+    image: alpine:3.20
+    command: ["sleep", "infinity"]
+    ports:
+      - "8101:80"
+
+  nginx-1:
+    <<: *nginx
+    network_mode: "service:host1-net"
+    depends_on: [host1-net]
+
+  redis-1:
+    <<: *redis
+    network_mode: "service:host1-net"
+    depends_on: [host1-net]
+
+  agent-1:
+    <<: *agent
+    network_mode: "service:host1-net"
+    depends_on: [host1-net]
+    environment:
+      OTEL_RESOURCE_ATTRIBUTES: "host.name=web-host-1,host.id=i-0aaa111"
+
+  # ---------- host 2 ----------
+  host2-net:
+    image: alpine:3.20
+    command: ["sleep", "infinity"]
+    ports:
+      - "8102:80"
+
+  nginx-2:
+    <<: *nginx
+    network_mode: "service:host2-net"
+    depends_on: [host2-net]
+
+  redis-2:
+    <<: *redis
+    network_mode: "service:host2-net"
+    depends_on: [host2-net]
+
+  agent-2:
+    <<: *agent
+    network_mode: "service:host2-net"
+    depends_on: [host2-net]
+    environment:
+      OTEL_RESOURCE_ATTRIBUTES: "host.name=web-host-2,host.id=i-0bbb222"
+
+  # ---------- host 3 ----------
+  host3-net:
+    image: alpine:3.20
+    command: ["sleep", "infinity"]
+    ports:
+      - "8103:80"
+
+  nginx-3:
+    <<: *nginx
+    network_mode: "service:host3-net"
+    depends_on: [host3-net]
+
+  redis-3:
+    <<: *redis
+    network_mode: "service:host3-net"
+    depends_on: [host3-net]
+
+  agent-3:
+    <<: *agent
+    network_mode: "service:host3-net"
+    depends_on: [host3-net]
+    environment:
+      OTEL_RESOURCE_ATTRIBUTES: "host.name=web-host-3,host.id=i-0ccc333"
+
+  # ---------- host 4: added later, agent-config.yml NOT touched ----------
+  host4-net:
+    image: alpine:3.20
+    command: ["sleep", "infinity"]
+    ports:
+      - "8104:80"
+
+  nginx-4:
+    <<: *nginx
+    network_mode: "service:host4-net"
+    depends_on: [host4-net]
+
+  redis-4:
+    <<: *redis
+    network_mode: "service:host4-net"
+    depends_on: [host4-net]
+
+  agent-4:
+    <<: *agent
+    network_mode: "service:host4-net"
+    depends_on: [host4-net]
+    environment:
+      OTEL_RESOURCE_ATTRIBUTES: "host.name=web-host-4,host.id=i-0ddd444"
+
+  # ---------- host 5: spare, not started by default (profile "host5") ----------
+  host5-net:
+    image: alpine:3.20
+    command: ["sleep", "infinity"]
+    profiles: ["host5"]
+    ports:
+      - "8105:80"
+
+  nginx-5:
+    <<: *nginx
+    network_mode: "service:host5-net"
+    depends_on: [host5-net]
+    profiles: ["host5"]
+
+  redis-5:
+    <<: *redis
+    network_mode: "service:host5-net"
+    depends_on: [host5-net]
+    profiles: ["host5"]
+
+  agent-5:
+    <<: *agent
+    network_mode: "service:host5-net"
+    depends_on: [host5-net]
+    profiles: ["host5"]
+    environment:
+      OTEL_RESOURCE_ATTRIBUTES: "host.name=web-host-5,host.id=i-0eee555"
+
+  # ---------- host 6: spare, not started by default (profile "host6") ----------
+  host6-net:
+    image: alpine:3.20
+    command: ["sleep", "infinity"]
+    profiles: ["host6"]
+    ports:
+      - "8106:80"
+
+  nginx-6:
+    <<: *nginx
+    network_mode: "service:host6-net"
+    depends_on: [host6-net]
+    profiles: ["host6"]
+
+  redis-6:
+    <<: *redis
+    network_mode: "service:host6-net"
+    depends_on: [host6-net]
+    profiles: ["host6"]
+
+  agent-6:
+    <<: *agent
+    network_mode: "service:host6-net"
+    depends_on: [host6-net]
+    profiles: ["host6"]
+    environment:
+      OTEL_RESOURCE_ATTRIBUTES: "host.name=web-host-6,host.id=i-0fff666"
