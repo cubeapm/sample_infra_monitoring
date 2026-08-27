@@ -1,0 +1,55 @@
+# Demonstrates ONE host running TWO redis + TWO nginx instances - the
+# co-located case agent-config.yml doesn't cover (it assumes one of each
+# per host). Independent of docker-compose.yml: nothing there is touched.
+#
+#   cd agent-per-host
+#   docker compose -f docker-compose-multi-instance.yml up -d
+#   open http://localhost:9094
+
+name: agent-per-host-multi
+
+services:
+  hostmulti-net:
+    image: alpine:3.20
+    command: ["sleep", "infinity"]
+
+  redis-a:
+    image: redis:alpine3.18
+    network_mode: "service:hostmulti-net"
+    depends_on: [hostmulti-net]
+
+  redis-b:
+    image: redis:alpine3.18
+    command: ["redis-server", "--port", "6380"]
+    network_mode: "service:hostmulti-net"
+    depends_on: [hostmulti-net]
+
+  nginx-a:
+    image: nginx:1.24.0
+    volumes:
+      - ../nginx.conf:/etc/nginx/nginx.conf:ro
+    network_mode: "service:hostmulti-net"
+    depends_on: [hostmulti-net]
+
+  nginx-b:
+    image: nginx:1.24.0
+    volumes:
+      - ./nginx-8080.conf:/etc/nginx/nginx.conf:ro
+    network_mode: "service:hostmulti-net"
+    depends_on: [hostmulti-net]
+
+  agent:
+    image: otel/opentelemetry-collector-contrib:0.123.0
+    volumes:
+      - ./agent-config-multi-instance.yml:/etc/otelcol-contrib/config.yaml:ro
+    network_mode: "service:hostmulti-net"
+    depends_on: [hostmulti-net]
+    environment:
+      OTEL_RESOURCE_ATTRIBUTES: "host.name=web-host-multi,host.id=i-0multi001"
+
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    volumes:
+      - ./prometheus-multi-instance.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9094:9090"

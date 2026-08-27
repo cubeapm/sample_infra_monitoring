@@ -1,0 +1,97 @@
+# Variant of agent-config.yml for a host running MULTIPLE instances of the
+# same service - e.g. two redis (6379, 6380) and two nginx (80, 8080) on one
+# machine. Contrast the two receiver types below; they need different
+# handling because only one of them can identify itself.
+receivers:
+  # Redis reports its OWN endpoint (server.address/server.port), so N redis
+  # instances can share ONE pipeline safely - each one self-identifies by the
+  # port it actually connected to. Adding a third instance is one more named
+  # block here, nothing else changes.
+  redis/a:
+    endpoint: localhost:6379
+    collection_interval: 10s
+    resource_attributes:
+      server.address:
+        enabled: true
+      server.port:
+        enabled: true
+
+  redis/b:
+    endpoint: localhost:6380
+    collection_interval: 10s
+    resource_attributes:
+      server.address:
+        enabled: true
+      server.port:
+        enabled: true
+
+  # nginx reports nothing about itself (verified absent even on upstream
+  # `main` - see agent-config.yml). A single constant stamp works when
+  # there's only one nginx per host; with two, that constant would tag BOTH
+  # instances with the same port. Each instance needs its own pipeline and
+  # its own resource processor stamping the port IT was configured with.
+  nginx/a:
+    endpoint: http://localhost:80/status
+    collection_interval: 10s
+
+  nginx/b:
+    endpoint: http://localhost:8080/status
+    collection_interval: 10s
+
+processors:
+  batch:
+
+  resourcedetection:
+    detectors: [env, system]
+    system:
+      hostname_sources: ["os"]
+
+  resource/nginx_a:
+    attributes:
+      - key: server.address
+        value: localhost
+        action: upsert
+      - key: server.port
+        value: "80"
+        action: upsert
+
+  resource/nginx_b:
+    attributes:
+      - key: server.address
+        value: localhost
+        action: upsert
+      - key: server.port
+        value: "8080"
+        action: upsert
+
+exporters:
+  debug:
+    verbosity: detailed
+
+  prometheus:
+    endpoint: 0.0.0.0:8889
+    resource_to_telemetry_conversion:
+      enabled: true
+
+service:
+  pipelines:
+    # ONE shared pipeline for both redis instances - safe, because each one
+    # stamps its own port from its own connection, never from a constant.
+    metrics/redis:
+      receivers: [redis/a, redis/b]
+      processors: [resourcedetection, batch]
+      exporters: [debug, prometheus]
+
+    # TWO separate pipelines for nginx - required, because the stamp is a
+    # constant per pipeline. Sharing one pipeline here would tag both
+    # instances with whichever port's processor ran (verified elsewhere in
+    # this project: a shared pipeline applies one tag to every receiver in it).
+    metrics/nginx_a:
+      receivers: [nginx/a]
+      processors: [resource/nginx_a, resourcedetection, batch]
+      exporters: [debug, prometheus]
+
+    metrics/nginx_b:
+      receivers: [nginx/b]
+      processors: [resource/nginx_b, resourcedetection, batch]
+      exporters: [debug, prometheus]
