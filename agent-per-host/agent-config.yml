@@ -1,0 +1,61 @@
+# This ONE file is deployed unchanged to every host.
+# Nothing in it references a specific server, so it never changes
+# when the fleet grows or shrinks. Per-host identity arrives via
+# OTEL_RESOURCE_ATTRIBUTES, which the `env` detector reads.
+receivers:
+  nginx:
+    endpoint: http://localhost:80/status
+    collection_interval: 10s
+
+  redis:
+    endpoint: localhost:6379
+    collection_interval: 10s
+    resource_attributes:
+      server.address:
+        enabled: true
+      server.port:
+        enabled: true
+
+processors:
+  batch:
+
+  resourcedetection:
+    detectors: [env, system]
+    system:
+      hostname_sources: ["os"]
+
+  # nginxreceiver never reports the endpoint it scraped, so we stamp it.
+  # Because every agent dials localhost:80, this is a constant rather than
+  # a per-server block — the agent-per-host topology is what collapses it.
+  resource/nginx_endpoint:
+    attributes:
+      - key: server.address
+        value: localhost
+        action: upsert
+      - key: server.port
+        value: "80"
+        action: upsert
+
+exporters:
+  debug:
+    verbosity: detailed
+
+  # Exposes /metrics for Prometheus to scrape. resource_to_telemetry_conversion
+  # promotes resource attributes (host.id, server.port, ...) into Prometheus
+  # labels; without it they'd be buried in a separate target_info metric.
+  prometheus:
+    endpoint: 0.0.0.0:8889
+    resource_to_telemetry_conversion:
+      enabled: true
+
+service:
+  pipelines:
+    metrics/nginx:
+      receivers: [nginx]
+      processors: [resource/nginx_endpoint, resourcedetection, batch]
+      exporters: [debug, prometheus]
+
+    metrics/redis:
+      receivers: [redis]
+      processors: [resourcedetection, batch]
+      exporters: [debug, prometheus]
