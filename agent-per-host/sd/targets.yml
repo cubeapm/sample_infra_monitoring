@@ -1,0 +1,6 @@
+# Prometheus re-reads this file every 5s and picks up changes with NO restart.
+# One line per agent. Add a host = append a line. Remove a host = delete its line.
+- targets: ["host1-net:8889"]
+- targets: ["host2-net:8889"]
+- targets: ["host3-net:8889"]
+- targets: ["host4-net:8889"]

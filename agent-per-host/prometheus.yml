@@ -1,0 +1,12 @@
+global:
+  scrape_interval: 10s
+
+scrape_configs:
+  # Targets live in targets.yml so they can change while Prometheus keeps running.
+  # Each hostN-net container owns the network namespace its agent runs in, so
+  # scraping hostN-net:8889 reaches that agent.
+  - job_name: otel-agents
+    file_sd_configs:
+      - files:
+          - /etc/prometheus/sd/*.yml
+        refresh_interval: 5s
