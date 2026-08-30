@@ -1,0 +1,33 @@
+# HELP redis_memory_used Memory used by Redis in bytes
+# TYPE redis_memory_used gauge
+redis_memory_used 91625283
+# HELP redis_memory_peak Peak memory used by Redis in bytes
+# TYPE redis_memory_peak gauge
+redis_memory_peak 165024882
+# HELP redis_clients_connected Number of connected clients
+# TYPE redis_clients_connected gauge
+redis_clients_connected 27
+# HELP redis_commands_processed_total Total commands processed
+# TYPE redis_commands_processed_total counter
+redis_commands_processed_total 23585441
+# HELP redis_uptime_in_seconds Uptime in seconds
+# TYPE redis_uptime_in_seconds counter
+redis_uptime_in_seconds 944055
+# HELP redis_keyspace_hits_total Total keyspace hits
+# TYPE redis_keyspace_hits_total counter
+redis_keyspace_hits_total 585612
+# HELP redis_keyspace_misses_total Total keyspace misses
+# TYPE redis_keyspace_misses_total counter
+redis_keyspace_misses_total 85526
+# HELP redis_net_input_bytes_total Total net input bytes
+# TYPE redis_net_input_bytes_total counter
+redis_net_input_bytes_total 44226844
+# HELP redis_net_output_bytes_total Total net output bytes
+# TYPE redis_net_output_bytes_total counter
+redis_net_output_bytes_total 1620703478
+# HELP redis_rdb_changes_since_last_save RDB changes since last save
+# TYPE redis_rdb_changes_since_last_save gauge
+redis_rdb_changes_since_last_save 508
+# HELP redis_connected_slaves Number of connected slaves
+# TYPE redis_connected_slaves gauge
+redis_connected_slaves 1

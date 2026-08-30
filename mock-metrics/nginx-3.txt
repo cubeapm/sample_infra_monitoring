@@ -1,0 +1,15 @@
+# HELP nginx_connections_current Current nginx connections by state
+# TYPE nginx_connections_current gauge
+nginx_connections_current{state="active"} 438
+nginx_connections_current{state="reading"} 6
+nginx_connections_current{state="writing"} 49
+nginx_connections_current{state="waiting"} 383
+# HELP nginx_requests_total Total nginx requests
+# TYPE nginx_requests_total counter
+nginx_requests_total 453143
+# HELP nginx_connections_accepted_total Total accepted connections
+# TYPE nginx_connections_accepted_total counter
+nginx_connections_accepted_total 453491
+# HELP nginx_connections_handled_total Total handled connections
+# TYPE nginx_connections_handled_total counter
+nginx_connections_handled_total 453420

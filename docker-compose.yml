@@ -113,13 +113,24 @@ services:
     ports:
       - "6379:6379"
 
+  mock-metrics-server:
+    image: nginx:alpine
+    volumes:
+      - ./mock-metrics:/usr/share/nginx/html/metrics
+      - ./mock-metrics-server.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "8090:80"
+
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.123.0
     volumes:
       - ./otel-collector-config.yml:/etc/otelcol-contrib/config.yaml
+      - ./targets:/etc/otelcol-contrib/targets
     ports:
       - "8889:8889"
     restart: always
+    depends_on:
+      - mock-metrics-server
 
   prometheus:
     image: prom/prometheus:latest

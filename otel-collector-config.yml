@@ -198,6 +198,20 @@ receivers:
     endpoint: http://nginx:80/status
     collection_interval: 60s
 
+  # Approach 2: file-based discovery for 50 mock nginx + 50 mock redis servers
+  # Targets are read from JSON files — add/remove servers by editing the files, no restart needed
+  prometheus/mock_metrics:
+    config:
+      scrape_configs:
+        - job_name: mock_nginx
+          file_sd_configs:
+            - files: ['/etc/otelcol-contrib/targets/nginx-targets.json']
+              refresh_interval: 30s
+        - job_name: mock_redis
+          file_sd_configs:
+            - files: ['/etc/otelcol-contrib/targets/redis-targets.json']
+              refresh_interval: 30s
+
   # Reference doc: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/postgresqlreceiver#readme
   postgresql:
     endpoint: postgres:5432
@@ -282,10 +296,11 @@ service:
         # - mongodb
         # - mongodbatlas
         # - mysql
-        - nginx
+        # - nginx       (replaced by prometheus/mock_metrics for Approach 2 demo)
         # - postgresql
         # - rabbitmq
-        - redis
+        # - redis       (replaced by prometheus/mock_metrics for Approach 2 demo)
+        - prometheus/mock_metrics
       processors:
         - batch
         - resourcedetection
