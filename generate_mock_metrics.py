@@ -4,8 +4,9 @@ import os
 
 random.seed(42)  # deterministic — same values every run
 
-MOCK_METRICS_DIR = "mock-metrics"
-TARGETS_DIR = "targets"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MOCK_METRICS_DIR = os.path.join(BASE_DIR, "mock-metrics")
+TARGETS_DIR = os.path.join(BASE_DIR, "targets")
 
 os.makedirs(MOCK_METRICS_DIR, exist_ok=True)
 os.makedirs(TARGETS_DIR, exist_ok=True)

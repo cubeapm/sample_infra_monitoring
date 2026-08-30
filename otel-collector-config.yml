@@ -270,7 +270,9 @@ exporters:
   debug:
     verbosity: detailed
     sampling_initial: 5
-    sampling_thereafter: 1
+    # 100 servers × ~9-11 metrics each = ~950 log lines per scrape cycle.
+    # sampling_thereafter=1 would flood logs; 200 keeps one sample per ~200 lines.
+    sampling_thereafter: 200
 
   prometheus:
     endpoint: "0.0.0.0:8889"
@@ -284,8 +286,10 @@ service:
   pipelines:
     metrics:
       receivers:
-        # Individual infra monitoring agents can be disabled
-        # by commenting them out here.
+        # The receivers defined above (aerospike, apache, elasticsearch, etc.)
+        # are kept as reference configs but excluded from this pipeline.
+        # Uncomment the relevant line below and the matching service in
+        # docker-compose.yml to enable any of them.
         # - aerospike
         # - apache
         # - elasticsearch
