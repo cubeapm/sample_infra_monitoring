@@ -300,10 +300,10 @@ service:
         # - mongodb
         # - mongodbatlas
         # - mysql
-        # - nginx       (replaced by prometheus/mock_metrics for Approach 2 demo)
+        - nginx
         # - postgresql
         # - rabbitmq
-        # - redis       (replaced by prometheus/mock_metrics for Approach 2 demo)
+        - redis
         - prometheus/mock_metrics
       processors:
         - batch

@@ -110,6 +110,8 @@ avg by (region) (redis_memory_used)
 sum by (env) (nginx_connections_current{state="active"})
 ```
 
+> **Note:** The mock metrics files contain static values generated once by `generate_mock_metrics.py`. Counter metrics (e.g. `nginx_requests_total`, `redis_commands_processed_total`) will show a flat line — `rate()` and `increase()` queries return 0. Use gauge metrics (`nginx_connections_current`, `redis_memory_used`, etc.) for meaningful graphs.
+
 
 
 ### Step 6 — Test dynamic target updates (no restart needed)

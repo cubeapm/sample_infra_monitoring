@@ -8,7 +8,7 @@
 
 ---
 
-## 2. Visualization: Prometheus + Grafana instead of CubeAPM
+## 2. Visualization: Prometheus + Grafana
 
 **Decision:** Use Prometheus + Grafana as the local observability stack.
 
@@ -17,15 +17,20 @@
 **CubeAPM status:** The `otlphttp` exporter is defined but commented out of the pipeline. When CubeAPM is available, uncomment `- otlphttp` in `otel-collector-config.yml` under `service.pipelines.metrics.exporters`.
 
 **Stack:**
-| Service | Port | Purpose |
-|---|---|---|
+
+
+| Service        | Port | Purpose                                  |
+| -------------- | ---- | ---------------------------------------- |
 | otel-collector | 8889 | Exposes metrics for Prometheus to scrape |
-| Prometheus | 9090 | Scrapes and stores metrics |
-| Grafana | 3000 | Visualizes metrics (login: admin/admin) |
+| Prometheus     | 9090 | Scrapes and stores metrics               |
+| Grafana        | 3000 | Visualizes metrics (login: admin/admin)  |
+
 
 **Grafana datasource** is auto-provisioned via `grafana/provisioning/datasources/datasource.yml` — no manual setup needed.
 
 ---
+
+
 
 ## 3. Debug exporter enabled
 
@@ -37,12 +42,13 @@
 
 ---
 
+
+
 ## 4. Scaling to multiple servers
 
 Five approaches depending on scale and environment. **Recommended for this project: Approach 1** (learning phase, < 20 servers).
 
-<details>
-<summary><strong>Approach 1: Named receiver instances (&lt; 20 servers) ✅ Current approach</strong></summary>
+**Approach 1: Named receiver instances (< 20 servers) ✅ Current approach**
 
 You hardcode every server directly in the collector config. The collector knows exactly who to talk to because you told it explicitly.
 
@@ -78,18 +84,19 @@ service:
       receivers: [redis/prod-1, redis/prod-2, nginx/server-1]
 ```
 
-| Pros | Cons |
-|---|---|
-| Simple, fully explicit | Config grows large at 50+ servers |
-| Easy to debug | Restart collector to add/remove servers |
-| No extra tools needed | Manual process, error prone at scale |
 
-</details>
+| Pros                   | Cons                                    |
+| ---------------------- | --------------------------------------- |
+| Simple, fully explicit | Config grows large at 50+ servers       |
+| Easy to debug          | Restart collector to add/remove servers |
+| No extra tools needed  | Manual process, error prone at scale    |
+
+
+
 
 ---
 
-<details>
-<summary><strong>Approach 2: File-based discovery (20–200 servers)</strong></summary>
+**Approach 2: File-based discovery (20–200 servers)**
 
 Think of it as an **address book the collector watches**. Servers are listed in a JSON file. The collector re-reads it every 30 seconds — no restart needed.
 
@@ -133,25 +140,27 @@ receivers:
 ]
 ```
 
-For Redis (which uses TCP, not HTTP), pair with [`redis_exporter`](https://github.com/oliver006/redis_exporter) — a single process that monitors hundreds of Redis instances and exposes them as HTTP metrics for the prometheus receiver to scrape.
+For Redis (which uses TCP, not HTTP), pair with `[redis_exporter](https://github.com/oliver006/redis_exporter)` — a single process that monitors hundreds of Redis instances and exposes them as HTTP metrics for the prometheus receiver to scrape.
 
 **How to leverage:**
+
 - Automate updates to the JSON file from your infrastructure provisioning scripts (Terraform, Ansible, etc.)
 - Each target gets labels (env, region, team) which become filterable dimensions in Grafana
 - Works well when servers are provisioned manually but you want zero-downtime target updates
 
-| Pros | Cons |
-|---|---|
-| No restart to add/remove servers | Must switch from native receivers to prometheus receiver |
-| Labels per target for rich filtering | You manage the targets file (still manual) |
-| Easy to automate via scripts | Native redis receiver can't use file_sd |
 
-</details>
+| Pros                                 | Cons                                                     |
+| ------------------------------------ | -------------------------------------------------------- |
+| No restart to add/remove servers     | Must switch from native receivers to prometheus receiver |
+| Labels per target for rich filtering | You manage the targets file (still manual)               |
+| Easy to automate via scripts         | Native redis receiver can't use file_sd                  |
+
+
+
 
 ---
 
-<details>
-<summary><strong>Approach 3: Service discovery (200+ servers, dynamic environments)</strong></summary>
+**Approach 3: Service discovery (200+ servers, dynamic environments)**
 
 The servers **announce themselves**. The collector doesn't need to be told about new servers — it asks Consul/Kubernetes "who's running right now?" and scrapes whatever answers.
 
@@ -210,23 +219,25 @@ receivers:
 ```
 
 **How to leverage:**
+
 - On Kubernetes: add annotation `prometheus.io/scrape: "true"` to your pod specs — collector picks them up automatically
 - On AWS: tag your EC2 instances with `Role=redis` — collector discovers them via AWS API
 - With Consul: services call `consul register` on startup — collector finds them within seconds
 
-| Pros | Cons |
-|---|---|
-| Fully automatic, zero manual updates | Requires Consul/Kubernetes/EC2 already running |
-| Scales to thousands of servers | High setup complexity |
-| Industry standard for cloud-native | Overkill for small/medium setups |
-| Metadata (region, AZ, pod name) auto-attached as labels | Steep learning curve |
 
-</details>
+| Pros                                                    | Cons                                           |
+| ------------------------------------------------------- | ---------------------------------------------- |
+| Fully automatic, zero manual updates                    | Requires Consul/Kubernetes/EC2 already running |
+| Scales to thousands of servers                          | High setup complexity                          |
+| Industry standard for cloud-native                      | Overkill for small/medium setups               |
+| Metadata (region, AZ, pod name) auto-attached as labels | Steep learning curve                           |
+
+
+
 
 ---
 
-<details>
-<summary><strong>Approach 4: Dedicated exporters (redis_exporter / nginx-prometheus-exporter)</strong></summary>
+**Approach 4: Dedicated exporters (redis_exporter / nginx-prometheus-exporter)**
 
 Instead of the collector talking directly to Redis/Nginx, a **specialist middleman** handles all the service-specific communication. The collector only talks to one place.
 
@@ -268,6 +279,8 @@ service:
       exporters: [prometheusremotewrite]
 ```
 
+
+
 ```yaml
 # docker-compose.yml additions
 redis-exporter:
@@ -289,18 +302,19 @@ nginx-exporter:
     - "9113:9113"
 ```
 
-| Pros | Cons |
-|---|---|
-| Richer metrics than OTel native receivers | One more process to run |
-| Battle-tested at production scale | Extra layer of complexity |
-| Works with any scraper | Exporter itself can bottleneck |
 
-</details>
+| Pros                                      | Cons                           |
+| ----------------------------------------- | ------------------------------ |
+| Richer metrics than OTel native receivers | One more process to run        |
+| Battle-tested at production scale         | Extra layer of complexity      |
+| Works with any scraper                    | Exporter itself can bottleneck |
+
+
+
 
 ---
 
-<details>
-<summary><strong>Approach 5: Multiple collector instances (1000+ servers)</strong></summary>
+**Approach 5: Multiple collector instances (1000+ servers)**
 
 When one collector can't keep up with the volume, you run many collectors and split the work between them. A **Target Allocator** acts as a coordinator, ensuring no server is scraped twice or missed.
 
@@ -363,14 +377,18 @@ spec:
           exporters: [prometheusremotewrite]
 ```
 
-| Pros | Cons |
-|---|---|
-| Linear horizontal scalability | Needs Kubernetes + OTel Operator |
-| No single point of failure | Complex to coordinate |
 
-</details>
+| Pros                          | Cons                             |
+| ----------------------------- | -------------------------------- |
+| Linear horizontal scalability | Needs Kubernetes + OTel Operator |
+| No single point of failure    | Complex to coordinate            |
+
+
+
 
 ---
+
+
 
 ## 5. Decision guide
 
@@ -387,6 +405,8 @@ How many servers?
 ```
 
 ---
+
+
 
 ## 6. Chosen scaling approach for this project
 
@@ -415,6 +435,8 @@ Kubernetes cluster
 - **Approach 5 alone** handles *capacity* — one collector can't keep up with 500+ pods.
 - **Together** they solve both problems: you never manually register a server AND you never hit a scraping bottleneck.
 
+
+
 ### In practice, a K8s production setup looks like this
 
 1. Install the **OpenTelemetry Operator** in the cluster
@@ -439,6 +461,8 @@ That's the only thing an engineer needs to do to onboard a new service — the T
 
 > **Note:** The `prometheus.io/scrape: "true"` annotation works with plain Kubernetes service discovery (Approach 3) but is **not** used by the Target Allocator in `prometheusCR` mode. The Target Allocator reads `PodMonitor` and `ServiceMonitor` CRDs instead.
 
+
+
 ### Where Approach 4 (dedicated exporters) still fits in K8s
 
 For Redis and Nginx specifically, even in K8s, teams often run `redis_exporter` as a sidecar container alongside each Redis pod. It gives richer metrics than the OTel native receiver.
@@ -452,6 +476,8 @@ Redis pod
 **The full production stack: Approach 3 + Approach 4 + Approach 5.**
 
 ---
+
+
 
 ## 7. Running the stack
 
@@ -473,8 +499,10 @@ open http://localhost:9090
 ```
 
 **Useful Grafana queries to start with:**
+
 ```
 redis_memory_used
 redis_clients_connected
 nginx_connections_current
 ```
+
