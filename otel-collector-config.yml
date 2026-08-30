@@ -258,6 +258,9 @@ exporters:
     sampling_initial: 5
     sampling_thereafter: 1
 
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+
   otlphttp:
     metrics_endpoint: http://host.docker.internal:3130/api/metrics/v1/save/otlp
     retry_on_failure:
@@ -269,19 +272,19 @@ service:
       receivers:
         # Individual infra monitoring agents can be disabled
         # by commenting them out here.
-        - aerospike
-        - apache
-        - elasticsearch
-        - haproxy
-        - hostmetrics
-        - kafkametrics
-        - memcached
-        - mongodb
-        - mongodbatlas
-        - mysql
+        # - aerospike
+        # - apache
+        # - elasticsearch
+        # - haproxy
+        # - hostmetrics
+        # - kafkametrics
+        # - memcached
+        # - mongodb
+        # - mongodbatlas
+        # - mysql
         - nginx
-        - postgresql
-        - rabbitmq
+        # - postgresql
+        # - rabbitmq
         - redis
       processors:
         - batch
@@ -289,8 +292,9 @@ service:
         # - resource/cube.environment
         # - transform/attributes.rename
       exporters:
-        - otlphttp
-        # - debug
+        # - otlphttp
+        - debug
+        - prometheus
 
   telemetry:
     logs:
