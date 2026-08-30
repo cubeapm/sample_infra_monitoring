@@ -6,8 +6,9 @@ This is a sample project to demonstrate how to ingest infra metrics into CubeAPM
 
 Clone this repository and go to the project directory. Then run the following commands
 
-```
-docker compose up --build
+```bash
+python3 generate_mock_metrics.py   # generates mock-metrics/ and targets/ (required before first run)
+docker compose up -d
 ```
 
 ## Notes
@@ -26,9 +27,10 @@ docker compose up --build
 
 This section tests the setup with 50 mock nginx and 50 mock redis servers using file-based service discovery. No external dependencies required — everything runs in Docker.
 
-### Step 1 — Start the stack
+### Step 1 — Generate mock metrics and start the stack
 
 ```bash
+python3 generate_mock_metrics.py   # creates mock-metrics/ and targets/ — run once before first start
 docker compose up -d
 ```
 
@@ -47,7 +49,7 @@ curl http://localhost:8090/metrics/nginx-1.txt
 curl http://localhost:8090/metrics/redis-50.txt
 ```
 
-You should see Prometheus-format text with metric names and values. If you get a 404, the `mock-metrics` directory is not mounted correctly.
+You should see Prometheus-format text with metric names and values. If you get a 404, either the `mock-metrics` directory is not mounted correctly or `generate_mock_metrics.py` hasn't been run yet.
 
 ### Step 3 — Verify the OTel collector is scraping
 
@@ -153,7 +155,7 @@ The new server appears without restarting anything.
 docker compose down
 ```
 
-> Prometheus data is lost on teardown (no persistent volume). Grafana dashboards are preserved via the `grafana_data` Docker volume.
+> Both Prometheus and Grafana data are preserved across restarts via Docker volumes (`prometheus_data` and `grafana_data`). To wipe all data, run `docker compose down -v`.
 
 ---
 

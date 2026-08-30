@@ -46,9 +46,9 @@
 
 ## 4. Scaling to multiple servers
 
-Five approaches depending on scale and environment. **Recommended for this project: Approach 1** (learning phase, < 20 servers).
+Five approaches depending on scale and environment. **Implemented in this project: Approach 2** — file-based discovery for 100 mock servers (50 nginx + 50 redis).
 
-**Approach 1: Named receiver instances (< 20 servers) ✅ Current approach**
+**Approach 1: Named receiver instances (< 20 servers)**
 
 You hardcode every server directly in the collector config. The collector knows exactly who to talk to because you told it explicitly.
 
@@ -96,7 +96,7 @@ service:
 
 ---
 
-**Approach 2: File-based discovery (20–200 servers)**
+**Approach 2: File-based discovery (20–200 servers) ✅ Current approach**
 
 Think of it as an **address book the collector watches**. Servers are listed in a JSON file. The collector re-reads it every 30 seconds — no restart needed.
 
@@ -482,6 +482,9 @@ Redis pod
 ## 7. Running the stack
 
 ```bash
+# Generate mock metrics files first (required — mock-metrics/ and targets/ are not committed)
+python3 generate_mock_metrics.py
+
 # Start everything
 docker compose up -d
 
