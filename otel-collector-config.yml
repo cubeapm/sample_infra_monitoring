@@ -212,12 +212,20 @@ receivers:
     tls:
       insecure: true
 
-  # Reference doc: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/rabbitmqreceiver#readme
-  rabbitmq:
-    endpoint: http://rabbitmq:15672
-    username: YOUR_USERNAME
-    password: YOUR_PASSWORD
-    collection_interval: 60s
+  # Reference doc: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/prometheusreceiver#readme
+  # Scrapes RabbitMQ's built-in Prometheus plugin (rabbitmq_prometheus), which
+  # must be enabled on the broker and exposes metrics at :15692/metrics.
+  # Reference doc: https://www.rabbitmq.com/docs/prometheus
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: rabbitmq
+          scrape_interval: 15s
+          # per-object emits one series per queue (with `queue`/`vhost` labels);
+          # the default /metrics aggregates everything per node.
+          metrics_path: /metrics/per-object
+          static_configs:
+            - targets: ["rabbitmq:15692"]
 
   # Reference doc: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/redisreceiver#readme
   redis:
@@ -281,7 +289,7 @@ service:
         - mysql
         - nginx
         - postgresql
-        - rabbitmq
+        - prometheus
         - redis
       processors:
         - batch

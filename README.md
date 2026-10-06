@@ -22,7 +22,7 @@ docker compose up --build
 
    The producer will wait for input. You can you can enter one message per line and finalize the input by pressing `Ctrl+D`. This will produce messages to the topic.
 
-1. To get RabbitMQ metrics, you need to create a queue and publish some messages. Open RabbitMQ management UI at http://localhost:15672 and login with the default credentials YOUR_USERNAME/YOUR_PASSWORD. Create a queue and publish some messages to it.
+1. RabbitMQ metrics are scraped from its built-in Prometheus plugin (enabled automatically, exposed at http://localhost:15692/metrics). The `rabbitmq-loadgen` service (RabbitMQ `perf-test`) continuously publishes/consumes messages on a `demo-queue` so connection, channel, queue and message-rate metrics stay non-zero. You can also inspect the broker directly via the management UI at http://localhost:15672 (login YOUR_USERNAME/YOUR_PASSWORD). Metrics tied to unused features (quorum/stream queues, federation, shovels, TLS, LDAP) stay at 0 unless you exercise those features.
 
 ## Contributing
 

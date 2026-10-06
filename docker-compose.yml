@@ -81,7 +81,7 @@ services:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=test
     ports:
-      - "3306:3306"
+      - "33066:33066"
 
   nginx:
     image: nginx:1.24.0
@@ -104,9 +104,71 @@ services:
     environment:
       - RABBITMQ_DEFAULT_USER=YOUR_USERNAME
       - RABBITMQ_DEFAULT_PASS=YOUR_PASSWORD
+    # Enables the rabbitmq_prometheus plugin so metrics are exposed on :15692/metrics
+    # Reference: https://www.rabbitmq.com/docs/prometheus
+    command: bash -c "rabbitmq-plugins enable rabbitmq_prometheus && exec rabbitmq-server"
     ports:
       - "5672:5672"
       - "15672:15672"
+      - "15692:15692"
+
+  # RabbitMQ load generators. Each one drives a different scenario so every
+  # dashboard chart has something to show. Reference: https://perftest.rabbitmq.com/
+
+  # Healthy: 5 queues (orders-1..orders-5), one producer + one consumer each,
+  # consumers keep up so lag stays ~0.
+  rabbitmq-loadgen:
+    image: pivotalrabbitmq/perf-test:latest
+    depends_on:
+      - rabbitmq
+    command: >
+      --uri amqp://YOUR_USERNAME:YOUR_PASSWORD@rabbitmq:5672
+      --id healthy
+      --queue-pattern orders-%d
+      --queue-pattern-from 1
+      --queue-pattern-to 5
+      --producers 5
+      --consumers 5
+      --rate 5
+      --confirm 1
+
+  # Lagging: consumer is slower than the producer, so ready messages pile up.
+  rabbitmq-loadgen-lagging:
+    image: pivotalrabbitmq/perf-test:latest
+    depends_on:
+      - rabbitmq
+    # TODO(human): command for lagging-queue (see --rate / --consumer-rate / --queue-args)
+
+  # Orphan: producer with no consumer. Lag grows until x-max-length, after which
+  # RabbitMQ drops the oldest message for each new one.
+  rabbitmq-loadgen-orphan:
+    image: pivotalrabbitmq/perf-test:latest
+    depends_on:
+      - rabbitmq
+    command: >
+      --uri amqp://YOUR_USERNAME:YOUR_PASSWORD@rabbitmq:5672
+      --id orphan
+      --queue orphan-queue
+      --producers 1
+      --consumers 0
+      --rate 2
+      --queue-args x-max-length=2000
+
+  # Unroutable: publishes to amq.direct with a routing key no queue is bound to,
+  # so the broker drops every message (rabbitmq_global_messages_unroutable_dropped_total).
+  rabbitmq-loadgen-unroutable:
+    image: pivotalrabbitmq/perf-test:latest
+    depends_on:
+      - rabbitmq
+    command: >
+      --uri amqp://YOUR_USERNAME:YOUR_PASSWORD@rabbitmq:5672
+      --id unroutable
+      --exchange amq.direct
+      --routing-key no-such-queue
+      --predeclared
+      --producers 1
+      --consumers 0
+      --rate 2
 
   redis:
     image: redis:alpine3.18
