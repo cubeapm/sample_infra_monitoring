@@ -107,6 +107,14 @@ services:
     # Enables the rabbitmq_prometheus plugin so metrics are exposed on :15692/metrics
     # Reference: https://www.rabbitmq.com/docs/prometheus
     command: bash -c "rabbitmq-plugins enable rabbitmq_prometheus && exec rabbitmq-server"
+    # The load generators wait on this: depends_on alone only waits for the
+    # container to start, and the broker takes ~10s to accept connections.
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+      start_period: 15s
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -120,7 +128,8 @@ services:
   rabbitmq-loadgen:
     image: pivotalrabbitmq/perf-test:latest
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
     command: >
       --uri amqp://YOUR_USERNAME:YOUR_PASSWORD@rabbitmq:5672
       --id healthy
@@ -136,7 +145,8 @@ services:
   rabbitmq-loadgen-lagging:
     image: pivotalrabbitmq/perf-test:latest
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
     # TODO(human): command for lagging-queue (see --rate / --consumer-rate / --queue-args)
 
   # Orphan: producer with no consumer. Lag grows until x-max-length, after which
@@ -144,7 +154,8 @@ services:
   rabbitmq-loadgen-orphan:
     image: pivotalrabbitmq/perf-test:latest
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
     command: >
       --uri amqp://YOUR_USERNAME:YOUR_PASSWORD@rabbitmq:5672
       --id orphan
@@ -159,7 +170,8 @@ services:
   rabbitmq-loadgen-unroutable:
     image: pivotalrabbitmq/perf-test:latest
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
     command: >
       --uri amqp://YOUR_USERNAME:YOUR_PASSWORD@rabbitmq:5672
       --id unroutable
